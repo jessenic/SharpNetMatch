@@ -13,6 +13,7 @@ namespace SharpNetMatch
     using SharpCompress.Archive.Rar;
     using SharpCompress.Reader;
     using System.Diagnostics;
+    using System.Net;
 
     /// <summary>
     /// Simple SharpNetMatch game using SharpDX.Toolkit.
@@ -21,13 +22,13 @@ namespace SharpNetMatch
     {
         private GraphicsDeviceManager graphicsDeviceManager;
         internal SpriteBatch spriteBatch;
-        internal SpriteFont arial16Font;
 
         internal KeyboardManager keyboard;
         internal KeyboardState keyboardState;
 
         internal MouseManager mouse;
         internal MouseState mouseState;
+        public Camera Cam;
         NmClient cbn = new NmClient();
 
         Map map;
@@ -55,23 +56,27 @@ namespace SharpNetMatch
         {
             // Modify the title of the window
             Window.Title = "SharpNetMatch";
-
+            lastUpdate = new TimeSpan();
             base.Initialize();
         }
-        string tmp = "";
+
         protected override void LoadContent()
         {
             // Instantiate a SpriteBatch
             spriteBatch = ToDisposeContent(new SpriteBatch(GraphicsDevice));
 
-            // Loads a sprite font
-            // The [Arial16.xml] file is defined with the build action [ToolkitFont] in the project
-            arial16Font = Content.Load<SpriteFont>("Arial16");
+            Textures.LoadContent(Content);
 
             cbn.InitClient("ci.dy.fi", 29929);
             cbn.Login();
+            string file = @"Content\" + cbn.MapName + ".mpc";
 
-            string file = @"Content\Luna.mpc";
+            if (!File.Exists(file))
+            {
+                WebClient wc = new WebClient();
+                wc.DownloadFile(new Uri(cbn.MapServerUrl + "/" + cbn.MapName + "/" + cbn.MapName + ".mpc"), file);
+            }
+
             File.Copy(file, file + ".rar", true);
             using (var stream = File.Open(file + ".rar", FileMode.Open, FileAccess.Write))
             {
@@ -85,7 +90,6 @@ namespace SharpNetMatch
             {
                 foreach (var f in arc.Entries)
                 {
-                    tmp += f.FilePath + "\n";
 
                     //using (var stream = f.OpenEntryStream())
                     //{
@@ -108,10 +112,13 @@ namespace SharpNetMatch
                     }
                 }
             }
-            map = new Map(this, "Luna");
+            Cam = new Camera();
+
+            map = new Map(this, cbn.MapName);
             map.LoadContent();
             base.LoadContent();
         }
+        TimeSpan lastUpdate;
 
         protected override void Update(GameTime gameTime)
         {
@@ -124,6 +131,12 @@ namespace SharpNetMatch
             mouseState = mouse.GetState();
 
             map.Update(gameTime);
+            cbn.LocalPlayer.Update(gameTime, map);
+            if (gameTime.TotalGameTime - lastUpdate > TimeSpan.FromMilliseconds(200))
+            {
+                cbn.UpdatePlayer();
+                lastUpdate = gameTime.TotalGameTime;
+            }
         }
 
         protected override void Draw(GameTime gameTime)
@@ -137,13 +150,20 @@ namespace SharpNetMatch
 
             map.Draw(gameTime);
 
+            foreach (var i in cbn.Items.Values)
+            {
+                i.Draw(gameTime, map);
+            }
+
+            foreach (var p in cbn.Players.Values)
+            {
+                p.Draw(gameTime, map);
+            }
 
             // ------------------------------------------------------------------------
             // Draw the some 2d text
             // ------------------------------------------------------------------------
-            spriteBatch.Begin();
-            spriteBatch.DrawString(arial16Font, tmp, new Vector2(16, 16), Color.White);
-            spriteBatch.End();
+
 
             base.Draw(gameTime);
         }

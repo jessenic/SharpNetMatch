@@ -30,10 +30,10 @@ namespace SharpNetMatch
         internal SpriteBatch spriteBatch { get { return parent.spriteBatch; } }
         GraphicsDevice GraphicsDevice { get { return parent.GraphicsDevice; } }
 
-        int tileWidth;
-        int tileHeight;
-        int mapWidth;
-        int mapHeight;
+        internal int tileWidth;
+        internal int tileHeight;
+        internal int mapWidth;
+        internal int mapHeight;
 
         byte[][,] map;
 
@@ -128,78 +128,81 @@ namespace SharpNetMatch
         }
         public void Draw(GameTime gameTime)
         {
-            int firstX = (int)(Camera.Location.X / tileWidth);
-            int firstY = (int)(Camera.Location.Y / tileHeight);
+            //int firstX = (int)(Camera.Location.X / tileWidth);
+            //int firstY = (int)(Camera.Location.Y / tileHeight);
 
-            int offsetX = (int)(Camera.Location.X % tileWidth);
-            int offsetY = (int)(Camera.Location.Y % tileHeight);
+            //int offsetX = (int)(Camera.Location.X % tileWidth);
+            //int offsetY = (int)(Camera.Location.Y % tileHeight);
 
             if (Background != null)
             {
-                int bgOffsetX = (int)(Camera.Location.X % Background.Width);
-                int bgOffsetY = (int)(Camera.Location.Y % Background.Height);
+            //    int bgOffsetX = (int)(Camera.Location.X % Background.Width);
+            //    int bgOffsetY = (int)(Camera.Location.Y % Background.Height);
                 //spriteBatch.Begin(SpriteSortMode.FrontToBack, GraphicsDevice.BlendStates.Opaque, GraphicsDevice.SamplerStates.LinearWrap, GraphicsDevice.DepthStencilStates.Default, GraphicsDevice.RasterizerStates.CullNone);
-                spriteBatch.Begin();
+                spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.get_transformation(GraphicsDevice));
                 for (int x = 0; x < (GraphicsDevice.Viewport.Width / Background.Width) + 1; x++)
                 {
                     for (int y = 0; y < (GraphicsDevice.Viewport.Height / Background.Height) + 1; y++)
                     {
-                        spriteBatch.Draw(Background, new Vector2((x * Background.Width) - bgOffsetX, (y * Background.Height) - bgOffsetY), Color.White);
+                        spriteBatch.Draw(Background, new Vector2((x * Background.Width), (y * Background.Height)), Color.White);
                     }
                 }
                 spriteBatch.End();
             }
-
-            spriteBatch.Begin();
-            for (byte l = 0; l < 2; l++)
-            {
-                for (int x = 0; x < mapWidth; x++)
+                spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.get_transformation(GraphicsDevice));
+                for (byte l = 0; l < 2; l++)
                 {
-                    for (int y = 0; y < mapHeight; y++)
+                    for (int x = 0; x < mapWidth; x++)
                     {
-                        if (x + firstX < mapWidth && y + firstY < mapHeight && map[l][x + firstX, y + firstY] > 0)
+                        for (int y = 0; y < mapHeight; y++)
                         {
-                            spriteBatch.Draw(
-                                Tilemap, new Vector2((x * tileWidth) - offsetX, (y * tileHeight) - offsetY),
-                                GetSourceRectangle(map[l][x + firstX, y + firstY]),
-                                Color.White);
+                            if (map[l][x, y] > 0)
+                            {
+                                spriteBatch.Draw(
+                                    Tilemap, new Vector2((x * tileWidth), (y * tileHeight)),
+                                    GetSourceRectangle(map[l][x, y]),
+                                    Color.White);
+                            }
                         }
                     }
                 }
-            }
-            spriteBatch.End();
+                spriteBatch.End();
         }
 
         public void Update(GameTime gameTime)
         {
-            if (parent.keyboardState.IsKeyDown(Keys.A))
+            if (parent.keyboardState.IsKeyDown(Keys.Left))
             {
-                Camera.Location.X = MathHelper.Clamp(Camera.Location.X - 4, 0, mapWidth * tileWidth);
+                parent.Cam.Move(new Vector2(-5,0));
             }
 
-            if (parent.keyboardState.IsKeyDown(Keys.D))
+            if (parent.keyboardState.IsKeyDown(Keys.Right))
             {
-                Camera.Location.X = MathHelper.Clamp(Camera.Location.X + 4, 0, mapWidth * tileWidth);
+                parent.Cam.Move(new Vector2(5, 0));
             }
 
-            if (parent.keyboardState.IsKeyDown(Keys.W))
+            if (parent.keyboardState.IsKeyDown(Keys.Up))
             {
-                Camera.Location.Y = MathHelper.Clamp(Camera.Location.Y - 4, 0, mapHeight * tileHeight);
+                parent.Cam.Move(new Vector2(0, -5));
             }
 
-            if (parent.keyboardState.IsKeyDown(Keys.S))
+            if (parent.keyboardState.IsKeyDown(Keys.Down))
             {
-                Camera.Location.Y = MathHelper.Clamp(Camera.Location.Y + 4, 0, mapHeight * tileHeight);
+                parent.Cam.Move(new Vector2(0, 5));
             }
         }
 
         public Rectangle GetSourceRectangle(int tileIndex)
         {
             tileIndex--;
-            int tileY = tileIndex / (Tilemap.Width / tileWidth);
-            int tileX = tileIndex % (Tilemap.Width / tileWidth);
+            return new Rectangle(tileIndex % (Tilemap.Width / tileWidth) * tileWidth, tileIndex / (Tilemap.Width / tileWidth) * tileHeight, tileWidth, tileHeight);
+        }
 
-            return new Rectangle(tileX * tileWidth, tileY * tileHeight, tileWidth, tileHeight);
+        public Vector2 GetTile(Vector2 pos)
+        {
+            pos.X = (float)(pos.X + 0.5 * mapWidth * tileWidth);
+            pos.Y = (float)(-pos.Y + 0.5 * mapHeight * tileHeight);
+            return pos;
         }
     }
 }

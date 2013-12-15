@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,11 +14,25 @@ namespace SharpNetMatch
         {
             base.PacketReceived += NmClient_PacketReceived;
             Players = new Dictionary<byte, Player>();
+            Items = new Dictionary<byte, Item>();
         }
 
         public Dictionary<byte, Player> Players { get; set; }
+        public Dictionary<byte, Item> Items { get; set; }
 
         public byte PlayerId;
+
+        public Player LocalPlayer
+        {
+            get
+            {
+                if (!Players.ContainsKey(PlayerId))
+                {
+                    Players.Add(PlayerId, new Player() { Id = PlayerId });
+                }
+                return Players[PlayerId];
+            }
+        }
 
         public bool IsLoggedIn { get; private set; }
 
@@ -39,10 +54,15 @@ namespace SharpNetMatch
                             var zombie = e.p.GetByte();
                             var team = e.p.GetByte();
                             System.Diagnostics.Debug.WriteLine(name);
-                            if (!Players.ContainsKey(id)) {
-                                //TODO: Players.Add(id, new Player());
+                            if (!Players.ContainsKey(id))
+                            {
+                                Players.Add(id, new Player());
                             }
                             Player player = Players[id];
+                            player.Id = id;
+                            player.Name = name;
+                            player.Zombie = zombie;
+                            player.Team = team;
                             break;
                         }
                     case PacketType.Player:
@@ -57,6 +77,20 @@ namespace SharpNetMatch
                             var health = e.p.GetByte();
                             var kills = e.p.GetShort();
                             var deaths = e.p.GetShort();
+
+                            if (!Players.ContainsKey(id))
+                            {
+                                Players.Add(id, new Player());
+                            }
+                            Player player = Players[id];
+                            player.Id = id;
+                            player.Position.X = x;
+                            player.Position.Y = y;
+                            player.Angle = angle;
+                            player.Health = health;
+                            player.Kills = kills;
+                            player.Deaths = deaths;
+                            player.KillRatio = kills != 0 && deaths != 0 ? kills / deaths : 0;
                             break;
                         }
                     case PacketType.Radar:
@@ -71,12 +105,21 @@ namespace SharpNetMatch
                             var itemtype = e.p.GetByte();
                             var x = e.p.GetShort();
                             var y = e.p.GetShort();
+                            if (!Items.ContainsKey(itemid))
+                            {
+                                Items.Add(itemid, new Item());
+                            }
+                            Item item = Items[itemid];
+                            item.Id = itemid;
+                            item.ItemType = itemtype;
+                            item.Position.X = x;
+                            item.Position.Y = y;
                             break;
                         }
                     case PacketType.MapChange:
                         {
-                            var mapName = e.p.GetString();
-                            var mapCRC = e.p.GetInt();
+                            MapName = e.p.GetString();
+                            MapCRC = e.p.GetInt();
                             break;
                         }
                     case PacketType.SessionTime:
@@ -130,6 +173,10 @@ namespace SharpNetMatch
             }
         }
 
+        public string MapServerUrl { get; set; }
+        public string MapName { get; set; }
+        public int MapCRC { get; set; }
+
         private void HandleLogin(Packet p)
         {
             var netmsg = p.GetByte(); // Luetaan kirjautumispyynnön vastaus
@@ -159,14 +206,15 @@ namespace SharpNetMatch
                     Uid = p.ClientId;
                     PlayerId = p.GetByte();
                     var playMode = p.GetByte();
-                    var serverMap = p.GetString();
-                    var mapCRC = p.GetInt();
-                    var mapServerUrl = p.GetString();
+                    MapName = p.GetString();
+                    MapCRC = p.GetInt();
+                    MapServerUrl = p.GetString();
                     p = new Packet();
                     p.PutByte(PacketType.PlayerName);        // Pyydetään kaikki tiedot
                     p.PutByte(PlayerId);      // Pelaajatunnus
                     p.PutByte(PacketType.End);               // Viestin loppu
                     ClientSend(p);
+                    IsLoggedIn = true;
                     return;
                     break;
             }
@@ -179,6 +227,26 @@ namespace SharpNetMatch
             p.PutString("v2.5"); // Ohjelmaversio
             p.PutString("SharpNM");    // Nimi
             ClientSend(p);                // Lähetys
+            while (!IsLoggedIn)
+            {
+                NmClient_PacketReceived(null, new PacketEventArgs(ClientRead()));
+            }
+            ClientReadInternal();
+        }
+
+        public void UpdatePlayer()
+        {
+            Packet p = new Packet();
+            p.PutByte((byte)PacketType.Player);
+            p.PutByte(LocalPlayer.Id);
+            p.PutShort((short)LocalPlayer.Position.X);
+            p.PutShort((short)LocalPlayer.Position.Y);
+            p.PutShort(LocalPlayer.Angle);
+            byte b = 0;
+            p.PutByte(b);
+            byte pickedId = 0;
+            p.PutByte(pickedId);
+            ClientSend(p);
         }
     }
 }

@@ -73,7 +73,7 @@ namespace SharpNetMatch
             Client = new UdpClient(host, port);
             Client.Connect(host, port);
             Client.Send(new byte[] { 0x0, 0x0 }, 2);
-            ClientReadInternal();
+            //ClientReadInternal();
         }
     }
     public class PacketEventArgs : EventArgs

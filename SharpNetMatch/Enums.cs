@@ -35,4 +35,113 @@ namespace SharpNetMatch
         DebugDrawing = 25, // Piirtelyjä debug-tarkoituksia varten tulossa
         End = 255, // Viestin loppu
     }
+
+
+    /**
+     * @namespace Aseet
+     */
+    public enum WeaponType
+    {
+        /** Pistooli */
+        Pistol = 1,
+
+
+        /** Konepistooli */
+        MachineGun = 2,
+
+
+        /** Sinko */
+        Bazooka = 3,
+
+
+        /** Haulikko */
+        Shotgun = 4,
+
+
+        /** Kranaatinlaukaisin */
+        Launcher = 5,
+
+
+        /** Moottorisaha */
+        Chainsaw = 6,
+
+
+        /** Aseiden lukumäärä */
+        WeaponCount = 6
+    };
+
+
+    /**
+     * @namespace Itemit omana kokoelmanaan eroteltuna OBJ kokoelmasta.
+     */
+    public enum ItemType
+    {
+        /** Healthpack */
+        Healthpack = 18,
+
+
+        /** Konekiväärin ammuksia */
+        Ammo = 19,
+
+
+        /** Singon ammuksia */
+        Rocket = 20,
+
+
+        /** Moottorisahan bensaa */
+        Fuel = 21,
+
+
+        /** Haulikon ammuksia */
+        Shotgun = 33,
+
+
+        /** Kranaatteja */
+        Launcher = 34
+    };
+
+
+    /**
+     * @namespace Piirrettävien tavaroiden tyypit, debuggailua varten.
+     */
+    enum DRAW
+    {
+        /** Viiva */
+        LINE = 1,
+
+
+        /** Origokeskinen ympyrä */
+        CIRCLE = 2,
+
+
+        /** Laatikko */
+        BOX = 3,
+
+
+        /** Clientille käsky tyhjentää piirrokset muistista */
+        CLEAR = 127
+    };
+
+
+    /**
+     * @namespace Pelaajiin liittyvät rajoitukset
+     */
+    enum PLR
+    {
+        /** Nopeus eteen (pikseliä sekunnissa) */
+        FORWARD_SPEED = 250,
+
+
+        /** Nopeus taakse (pikseliä sekunnissa) */
+        BACKWARD_SPEED = 150,
+
+
+        /** Nopeus sivulle (pikseliä sekunnissa) */
+        SIDESTEP_SPEED = 160,
+
+
+        /** Kuinka iso on ympyrä-tilekartta törmäyksen ympyrän säde */
+        COL_RADIUS = 25
+    };
+
 }
