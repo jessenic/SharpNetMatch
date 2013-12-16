@@ -15,8 +15,9 @@ namespace SharpNetMatch
         public byte Id;//Pelaajan tunnus välillä 1-MAX_PLAYERS
         public string Name = "";//Pelaajan nimimerkki
         public Vector2 Position; //Sijainti
+        public Vector2 NextPosition;
         public short Angle;//Kulma
-        public byte Weapon;//Käytössä oleva ase
+        public byte HeldWeapon;//Käytössä oleva ase
         public int Health;//Terveys
         public short Kills;//Tappojen lukumäärä
         public short Deaths;//Kuolemien lukumäärä
@@ -25,58 +26,132 @@ namespace SharpNetMatch
         public byte Zombie;//Onko tämä pelaaja botti
         public byte Team;//Joukkue
         public int Visible;//Ukon vilkuttaminen syntymän jälkeen
+        public byte IsProtected;
+
+        public byte HasAmmo;
 
 
         public Player()
         {
             Position = Vector2.Zero;
+            NextPosition = Vector2.Zero;
         }
 
         public void Draw(GameTime gameTime, Map map)
         {
-            map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, map.parent.GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, map.parent.Cam.get_transformation(map.parent.GraphicsDevice));
+            map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, map.parent.GraphicsDevice.BlendStates.NonPremultiplied, null, null, null, null, map.parent.Cam.Transformation);
             Vector2 pos = map.GetTile(Position);
 
             if (Team == 2)
             {
-                map.parent.spriteBatch.Draw(Textures.PlayerPistol2, pos, null, Color.White, DegreeToRadian(Angle), Vector2.Zero, 1, SpriteEffects.None, 0);
+                map.parent.spriteBatch.Draw(Textures.PlayerPistol2, pos, null, Color.White, DegreeToRadian(Angle), new Vector2(Textures.PlayerPistol2.Width / 2, Textures.PlayerPistol2.Height / 2), 1, SpriteEffects.None, 0);
             }
             else
             {
-                map.parent.spriteBatch.Draw(Textures.PlayerPistol1, pos, null, Color.White, DegreeToRadian(Angle), Vector2.Zero, 1, SpriteEffects.None, 0);
+                map.parent.spriteBatch.Draw(Textures.PlayerPistol1, pos, null, Color.White, DegreeToRadian(Angle), new Vector2(Textures.PlayerPistol1.Width / 2, Textures.PlayerPistol1.Height / 2), 1, SpriteEffects.None, 0);
             }
-            map.spriteBatch.DrawString(Textures.Arial16, this.Name, pos + new Vector2(0, Textures.PlayerPistol1.Height), Color.White);
+            map.spriteBatch.DrawString(Textures.Arial16, this.Name + " " + Health, pos + new Vector2(0, Textures.PlayerPistol1.Height), Color.Yellow);
             map.spriteBatch.End();
         }
 
+        private bool lastPressed = false;
+
         public void Update(GameTime gameTime, Map map)
         {
-            if (map.parent.keyboardState.IsKeyDown(Keys.A))
+            if (Vector2.Distance(Position, NextPosition) > 20)
             {
-                Position.X -= 10;
+                Position = NextPosition;
             }
+            NextPosition = Position;
+            if (Health > 0)
+            {
+                var newPos = Position;
 
-            if (map.parent.keyboardState.IsKeyDown(Keys.D))
-            {
-                Position.X += 10;
-            }
+                if (map.parent.keyboardState.IsKeyDown(Keys.A))
+                {
+                    newPos.X -= 4;
+                }
 
-            if (map.parent.keyboardState.IsKeyDown(Keys.W))
-            {
-                Position.Y -= 10;
-            }
+                if (map.parent.keyboardState.IsKeyDown(Keys.D))
+                {
+                    newPos.X += 4;
+                }
 
-            if (map.parent.keyboardState.IsKeyDown(Keys.S))
-            {
-                Position.Y += 10;
+                if (map.parent.keyboardState.IsKeyDown(Keys.W))
+                {
+                    newPos.Y += 4;
+                }
+
+                if (map.parent.keyboardState.IsKeyDown(Keys.S))
+                {
+                    newPos.Y -= 4;
+                }
+                if (!map.IsWall(newPos))
+                {
+                    Position = newPos;
+                }
+                Vector2 pos = map.parent.Cam.MouseCursorInWorld - map.GetTile(Position);
+                this.Angle = RadianToDegree(Math.Atan2(pos.Y, pos.X));
+                while (Angle > 360)
+                {
+                    Angle -= 360;
+                }
+                //Camera.Location = Position;
+                map.parent.Cam.Pos = map.GetTile(Position);
+                HeldWeapon = (byte)WeaponType.MachineGun;
+                HasAmmo = 1;
+
+                if (map.parent.mouseState.Left == ButtonState.Pressed && !lastPressed)
+                {
+                    Weapon w = Weapon.WeaponList[(WeaponType)HeldWeapon];
+                    // Tarkastetaan, onko panoksia
+                    //ammoExists = False
+                    //If aWeapon(player\weapon, WPNF_AMMO) > 0 Then ammoExists = True
+                    //// Tutkitaan voidaanko lähettää tieto ampumisesta
+                    //shootNow = 0
+                    //If (MouseDown(1) = True Or KeyDown(cbKeySpace) = True) And (player\weapon<>WPN_PISTOL Or gNotShotYet = True) And gConsoleMode = False And gDevConsole = False And gSessionComplete = False And player\spawnTime = 0 And player\team <> 0 Then
+                    //    // Onko ase latingissa
+                    //    If player\lastShoot + aWeapon(player\weapon, WPNF_RELOADTIME) < Timer() And player\health > 0 Then
+                    //        // Onko ammuksia
+                    //        If aWeapon(player\weapon, WPNF_AMMO) > 0 Or aWeapon(player\weapon, WPNF_AMMO_MAX) = 0 Then
+                    //            // Latingissa on, vähennetään ammuksia
+                    //            aWeapon(player\weapon, WPNF_AMMO) = aWeapon(player\weapon, WPNF_AMMO) - 1
+                    //            aWeaponAmmos(player\weapon) = aWeapon(player\weapon, WPNF_AMMO) * 3
+                    //            player\lastShoot = Timer()
+                    //            shootNow = True
+                    //        Else
+                    //            PlayGameSound(SND_EMPTY, ObjectX(player\obj), ObjectY(player\obj))
+                    //            player\lastShoot = Timer()
+                    //        EndIf
+                    //        gNotShotYet = False // Ammuttiin jo. Pistoolit eivät ammu ennen kuin klikkaa uudestaan
+                    //    EndIf
+                    //EndIf
+
+                }
             }
-            //Camera.Location = Position;
-            //map.parent.Cam.Pos = Position;
+            lastPressed = map.parent.mouseState.Left == ButtonState.Pressed;
+
+            if (gameTime.TotalGameTime - map.parent.lastUpdate > TimeSpan.FromMilliseconds(100))
+            {
+                map.parent.cbn.UpdatePlayer(lastPressed ? (byte)1 : (byte)0);
+                map.parent.lastUpdate = gameTime.TotalGameTime;
+            }
         }
         private float DegreeToRadian(short angle)
         {
-            return (float)((Math.PI / 180) * (360 - angle));
+            return (float)((Math.PI / 180.0) * (360 - angle));
+        }
+        private short RadianToDegree(double angle)
+        {
+            return (short)(360 - (180.0 / Math.PI * angle));
         }
 
+        public Rectangle Bounding
+        {
+            get
+            {
+                return new Rectangle((int)(Position.X), (int)(Position.Y), Textures.PlayerPistol1.Width, Textures.PlayerPistol1.Height);
+            }
+        }
     }
 }

@@ -136,10 +136,10 @@ namespace SharpNetMatch
 
             if (Background != null)
             {
-            //    int bgOffsetX = (int)(Camera.Location.X % Background.Width);
-            //    int bgOffsetY = (int)(Camera.Location.Y % Background.Height);
+                //    int bgOffsetX = (int)(Camera.Location.X % Background.Width);
+                //    int bgOffsetY = (int)(Camera.Location.Y % Background.Height);
                 //spriteBatch.Begin(SpriteSortMode.FrontToBack, GraphicsDevice.BlendStates.Opaque, GraphicsDevice.SamplerStates.LinearWrap, GraphicsDevice.DepthStencilStates.Default, GraphicsDevice.RasterizerStates.CullNone);
-                spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.get_transformation(GraphicsDevice));
+                spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.Transformation);
                 for (int x = 0; x < (GraphicsDevice.Viewport.Width / Background.Width) + 1; x++)
                 {
                     for (int y = 0; y < (GraphicsDevice.Viewport.Height / Background.Height) + 1; y++)
@@ -149,31 +149,31 @@ namespace SharpNetMatch
                 }
                 spriteBatch.End();
             }
-                spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.get_transformation(GraphicsDevice));
-                for (byte l = 0; l < 2; l++)
+            spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.Transformation);
+            for (byte l = 0; l < 2; l++)
+            {
+                for (int x = 0; x < mapWidth; x++)
                 {
-                    for (int x = 0; x < mapWidth; x++)
+                    for (int y = 0; y < mapHeight; y++)
                     {
-                        for (int y = 0; y < mapHeight; y++)
+                        if (map[l][x, y] > 0)
                         {
-                            if (map[l][x, y] > 0)
-                            {
-                                spriteBatch.Draw(
-                                    Tilemap, new Vector2((x * tileWidth), (y * tileHeight)),
-                                    GetSourceRectangle(map[l][x, y]),
-                                    Color.White);
-                            }
+                            spriteBatch.Draw(
+                                Tilemap, new Vector2((x * tileWidth), (y * tileHeight)),
+                                GetSourceRectangle(map[l][x, y]),
+                                Color.White);
                         }
                     }
                 }
-                spriteBatch.End();
+            }
+            spriteBatch.End();
         }
 
         public void Update(GameTime gameTime)
         {
             if (parent.keyboardState.IsKeyDown(Keys.Left))
             {
-                parent.Cam.Move(new Vector2(-5,0));
+                parent.Cam.Move(new Vector2(-5, 0));
             }
 
             if (parent.keyboardState.IsKeyDown(Keys.Right))
@@ -203,6 +203,25 @@ namespace SharpNetMatch
             pos.X = (float)(pos.X + 0.5 * mapWidth * tileWidth);
             pos.Y = (float)(-pos.Y + 0.5 * mapHeight * tileHeight);
             return pos;
+        }
+
+        public bool DoesHit(Rectangle source, Rectangle target)
+        {
+            return source.Intersects(target);
+        }
+
+        public bool IsWall(Vector2 pos)
+        {
+            int tileX = (int)Math.Ceiling((pos.X + this.mapWidth * this.tileWidth / 2) / this.tileWidth) - 1;
+            int tileY = (int)Math.Ceiling((-pos.Y + this.mapHeight * this.tileHeight / 2) / this.tileHeight) - 1;
+
+
+            if (tileX < 0 || tileX >= this.mapWidth || tileY < 0 || tileY >= this.mapHeight)
+            {
+                // Ollaan kartan ulkopuolella, eli törmätään.
+                return true;
+            }
+            return map[2][tileX, tileY] == 1;
         }
     }
 }

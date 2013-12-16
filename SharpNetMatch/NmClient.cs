@@ -84,10 +84,24 @@ namespace SharpNetMatch
                             }
                             Player player = Players[id];
                             player.Id = id;
-                            player.Position.X = x;
-                            player.Position.Y = y;
+                            if (id == PlayerId)
+                            {
+                                player.NextPosition.X = x;
+                                player.NextPosition.Y = y;
+                            }
+                            else
+                            {
+                                player.Position.X = x;
+                                player.Position.Y = y;
+                            }
                             player.Angle = angle;
-                            player.Health = health;
+
+                            player.HeldWeapon = (byte)((b << 28) >> 28);     // Ase (bitit 0-3)
+                            player.HasAmmo = (byte)((b << 27) >> 31);     // Onko ammuksia (bitti 4)
+                            player.Team = (byte)((b << 25) >> 31 + 1); // Joukkue (bitti 6)
+                            player.IsProtected = (byte)((b << 24) >> 31);     // Haavoittumaton (bitti 7)
+
+                            player.Health = health > 128 ? health - 256 : health;
                             player.Kills = kills;
                             player.Deaths = deaths;
                             player.KillRatio = kills != 0 && deaths != 0 ? kills / deaths : 0;
@@ -225,7 +239,7 @@ namespace SharpNetMatch
             Packet p = new Packet();
             p.PutByte((byte)PacketType.Login);     // Login-viesti
             p.PutString("v2.5"); // Ohjelmaversio
-            p.PutString("SharpNM");    // Nimi
+            p.PutString("SharpNM" + new Random().Next(int.MaxValue));    // Nimi
             ClientSend(p);                // Lähetys
             while (!IsLoggedIn)
             {
@@ -234,7 +248,7 @@ namespace SharpNetMatch
             ClientReadInternal();
         }
 
-        public void UpdatePlayer()
+        public void UpdatePlayer(byte shootNow)
         {
             Packet p = new Packet();
             p.PutByte((byte)PacketType.Player);
@@ -242,7 +256,17 @@ namespace SharpNetMatch
             p.PutShort((short)LocalPlayer.Position.X);
             p.PutShort((short)LocalPlayer.Position.Y);
             p.PutShort(LocalPlayer.Angle);
-            byte b = 0;
+
+            if (LocalPlayer.HasAmmo == 0 || LocalPlayer.HeldWeapon == 0)
+            {
+                shootNow = 0;
+            }
+
+            // Tungetaan useampi muuttuja yhteen tavuun:
+            byte b = (byte)(((LocalPlayer.HeldWeapon % 16) << 0)  // Ase (bitit 0-3)
+              + (LocalPlayer.HasAmmo << 4)     // Onko ammuksia (bitti 4)
+              + (shootNow << 5));          // Ammutaanko (bitti 5)
+
             p.PutByte(b);
             byte pickedId = 0;
             p.PutByte(pickedId);

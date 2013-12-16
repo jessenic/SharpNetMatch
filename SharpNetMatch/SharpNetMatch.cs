@@ -29,9 +29,9 @@ namespace SharpNetMatch
         internal MouseManager mouse;
         internal MouseState mouseState;
         public Camera Cam;
-        NmClient cbn = new NmClient();
+        internal NmClient cbn = new NmClient();
 
-        Map map;
+        internal Map map;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SharpNetMatch" /> class.
@@ -66,6 +66,7 @@ namespace SharpNetMatch
             spriteBatch = ToDisposeContent(new SpriteBatch(GraphicsDevice));
 
             Textures.LoadContent(Content);
+            Weapon.Load();
 
             cbn.InitClient("ci.dy.fi", 29929);
             cbn.Login();
@@ -112,13 +113,13 @@ namespace SharpNetMatch
                     }
                 }
             }
-            Cam = new Camera();
+            Cam = new Camera(this);
 
             map = new Map(this, cbn.MapName);
             map.LoadContent();
             base.LoadContent();
         }
-        TimeSpan lastUpdate;
+        internal TimeSpan lastUpdate;
 
         protected override void Update(GameTime gameTime)
         {
@@ -132,11 +133,12 @@ namespace SharpNetMatch
 
             map.Update(gameTime);
             cbn.LocalPlayer.Update(gameTime, map);
-            if (gameTime.TotalGameTime - lastUpdate > TimeSpan.FromMilliseconds(200))
-            {
-                cbn.UpdatePlayer();
-                lastUpdate = gameTime.TotalGameTime;
-            }
+            Cam.Zoom = 1 + ((float)mouseState.WheelDelta / 1200f);
+        }
+
+        public Vector2 GetMouseXY()
+        {
+            return new Vector2(mouseState.X * GraphicsDevice.BackBuffer.Width, mouseState.Y * GraphicsDevice.BackBuffer.Height);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -159,6 +161,10 @@ namespace SharpNetMatch
             {
                 p.Draw(gameTime, map);
             }
+
+            spriteBatch.Begin();
+            spriteBatch.Draw(Textures.LauncherItem, GetMouseXY(), Color.White);
+            spriteBatch.End();
 
             // ------------------------------------------------------------------------
             // Draw the some 2d text

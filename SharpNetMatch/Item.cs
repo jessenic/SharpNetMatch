@@ -20,7 +20,7 @@ namespace SharpNetMatch
         public Vector2 Position;
         public void Draw(GameTime gameTime, Map map)
         {
-            map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, map.parent.GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, map.parent.Cam.get_transformation(map.parent.GraphicsDevice));
+            map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, map.parent.GraphicsDevice.BlendStates.NonPremultiplied, null, null, null, null, map.parent.Cam.Transformation);
             switch ((ItemType)ItemType)
             {
                 case global::SharpNetMatch.ItemType.Rocket:
