@@ -14,6 +14,7 @@ namespace SharpNetMatch
     using SharpCompress.Reader;
     using System.Diagnostics;
     using System.Net;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Simple SharpNetMatch game using SharpDX.Toolkit.
@@ -32,6 +33,8 @@ namespace SharpNetMatch
         internal NmClient cbn = new NmClient();
 
         internal Map map;
+
+        int prevMapCRC = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SharpNetMatch" /> class.
@@ -70,6 +73,14 @@ namespace SharpNetMatch
 
             cbn.InitClient("ci.dy.fi", 29929);
             cbn.Login();
+            cbn.ClientReadInternal();
+            LoadMap();
+            Cam = new Camera(this);
+            base.LoadContent();
+        }
+        public void LoadMap()
+        {
+            map = null;
             string file = @"Content\" + cbn.MapName + ".mpc";
 
             if (!File.Exists(file))
@@ -113,27 +124,59 @@ namespace SharpNetMatch
                     }
                 }
             }
-            Cam = new Camera(this);
 
             map = new Map(this, cbn.MapName);
             map.LoadContent();
-            base.LoadContent();
+            prevMapCRC = cbn.MapCRC;
         }
         internal TimeSpan lastUpdate;
 
         protected override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
+            if (map == null)
+            {
+                return;
+            }
+            if (prevMapCRC != cbn.MapCRC)
+            {
+                cbn.Logout();
+                LoadMap();
+                cbn.Login();
+            }
 
             // Get the current state of the keyboard
             keyboardState = keyboard.GetState();
 
             // Get the current state of the mouse
             mouseState = mouse.GetState();
+            foreach (var w in Weapon.WeaponList)
+            {
+                if (keyboardState.IsKeyDown(w.Value.Key))
+                {
+                    cbn.LocalPlayer.HeldWeapon = w.Key;
+                }
+            }
 
             map.Update(gameTime);
             cbn.LocalPlayer.Update(gameTime, map);
             Cam.Zoom = 1 + ((float)mouseState.WheelDelta / 1200f);
+            List<short> removeBullets = new List<short>();
+            foreach (var b in cbn.Bullets)
+            {
+                if (b.Value.Remove)
+                {
+                    removeBullets.Add(b.Key);
+                }
+                else
+                {
+                    b.Value.Update(gameTime, map);
+                }
+            }
+            foreach (var b in removeBullets)
+            {
+                cbn.Bullets.Remove(b);
+            }
         }
 
         public Vector2 GetMouseXY()
@@ -149,12 +192,23 @@ namespace SharpNetMatch
             // Clears the screen with the Color.CornflowerBlue
             GraphicsDevice.Clear(Color.Black);
 
-
+            if (map == null)
+            {
+                spriteBatch.Begin();
+                spriteBatch.DrawString(Textures.Arial16, "Loading map " + cbn.MapName, new Vector2(10, 10), Color.Yellow);
+                spriteBatch.End();
+                return;
+            }
             map.Draw(gameTime);
 
             foreach (var i in cbn.Items.Values)
             {
                 i.Draw(gameTime, map);
+            }
+
+            foreach (var b in cbn.Bullets.Values)
+            {
+                b.Draw(gameTime, map);
             }
 
             foreach (var p in cbn.Players.Values)
@@ -169,7 +223,10 @@ namespace SharpNetMatch
             // ------------------------------------------------------------------------
             // Draw the some 2d text
             // ------------------------------------------------------------------------
-
+            spriteBatch.Begin();
+            spriteBatch.DrawString(Textures.Arial16, cbn.LocalPlayer.HeldWeapon.ToString(), new Vector2(10, 10), Color.Yellow);
+            spriteBatch.DrawString(Textures.Arial16, "Time: " + cbn.TimePlayed + "/" + cbn.RoundLength, new Vector2(GraphicsDevice.Viewport.Width / 2, 10), Color.Yellow);
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }

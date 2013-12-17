@@ -136,13 +136,14 @@ namespace SharpNetMatch
 
             if (Background != null)
             {
-                //    int bgOffsetX = (int)(Camera.Location.X % Background.Width);
-                //    int bgOffsetY = (int)(Camera.Location.Y % Background.Height);
+                var fp = parent.Cam.ScreenPosInWorld(Vector2.Zero);
+                var lp = parent.Cam.ScreenPosInWorld(new Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
+                //tile -= GetTile(new Vector2(parent.GraphicsDevice.Viewport.Width * 0.5f, parent.GraphicsDevice.Viewport.Height * 0.5f));
                 //spriteBatch.Begin(SpriteSortMode.FrontToBack, GraphicsDevice.BlendStates.Opaque, GraphicsDevice.SamplerStates.LinearWrap, GraphicsDevice.DepthStencilStates.Default, GraphicsDevice.RasterizerStates.CullNone);
                 spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.Transformation);
-                for (int x = 0; x < (GraphicsDevice.Viewport.Width / Background.Width) + 1; x++)
+                for (int x = (int)fp.X / Background.Width - 1; x < (int)lp.X / Background.Width + 1; x++)
                 {
-                    for (int y = 0; y < (GraphicsDevice.Viewport.Height / Background.Height) + 1; y++)
+                    for (int y = (int)fp.Y / Background.Height - 1; y < (int)lp.Y / Background.Height + 1 + 1; y++)
                     {
                         spriteBatch.Draw(Background, new Vector2((x * Background.Width), (y * Background.Height)), Color.White);
                     }
@@ -222,6 +223,13 @@ namespace SharpNetMatch
                 return true;
             }
             return map[2][tileX, tileY] == 1;
+        }
+
+        internal bool InMap(Vector2 Position)
+        {
+            Position.X = (float)Math.Ceiling((Position.X + this.mapWidth * this.tileWidth / 2) / this.tileWidth) - 1;
+            Position.Y = (float)Math.Ceiling((-Position.Y + this.mapHeight * this.tileHeight / 2) / this.tileHeight) - 1;
+            return Position.X > 0 && Position.X <= this.mapWidth && Position.Y > 0 && Position.Y <= this.mapHeight;
         }
     }
 }

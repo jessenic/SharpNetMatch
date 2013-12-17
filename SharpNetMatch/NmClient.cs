@@ -15,12 +15,18 @@ namespace SharpNetMatch
             base.PacketReceived += NmClient_PacketReceived;
             Players = new Dictionary<byte, Player>();
             Items = new Dictionary<byte, Item>();
+            Bullets = new Dictionary<short, Bullet>();
         }
 
         public Dictionary<byte, Player> Players { get; set; }
+        public Dictionary<short, Bullet> Bullets { get; set; }
         public Dictionary<byte, Item> Items { get; set; }
 
         public byte PlayerId;
+
+        public bool SessionCompleted = false;
+        public int TimePlayed;
+        public int RoundLength;
 
         public Player LocalPlayer
         {
@@ -96,7 +102,7 @@ namespace SharpNetMatch
                             }
                             player.Angle = angle;
 
-                            player.HeldWeapon = (byte)((b << 28) >> 28);     // Ase (bitit 0-3)
+                            player.HeldWeapon = (WeaponType)((b << 28) >> 28);     // Ase (bitit 0-3)
                             player.HasAmmo = (byte)((b << 27) >> 31);     // Onko ammuksia (bitti 4)
                             player.Team = (byte)((b << 25) >> 31 + 1); // Joukkue (bitti 6)
                             player.IsProtected = (byte)((b << 24) >> 31);     // Haavoittumaton (bitti 7)
@@ -125,7 +131,7 @@ namespace SharpNetMatch
                             }
                             Item item = Items[itemid];
                             item.Id = itemid;
-                            item.ItemType = itemtype;
+                            item.Type = (ItemType)itemtype;
                             item.Position.X = x;
                             item.Position.Y = y;
                             break;
@@ -138,9 +144,9 @@ namespace SharpNetMatch
                         }
                     case PacketType.SessionTime:
                         {
-                            var periodLength = e.p.GetInt();
-                            var played = e.p.GetInt();
-                            var sessionComplete = e.p.GetByte();
+                            RoundLength = e.p.GetInt();
+                            TimePlayed = e.p.GetInt();
+                            SessionCompleted = e.p.GetByte() == 1 ? true : false;
                             break;
                         }
                     case PacketType.End:
@@ -151,9 +157,25 @@ namespace SharpNetMatch
                             var playerId = e.p.GetByte();
                             var b = e.p.GetByte();
 
+                            WeaponType weapon = (WeaponType)((b << 28) >> 28); // Millä aseella (b:n bitit 0-3)
+                            var sndPlay = (b << 27) >> 31; // Soitetaanko ääni (b:n neljäs bitti)
+                            if (weapon == WeaponType.Pistol)
+                            {
+                                // Kummalla kädellä ammuttiin (b:n viides bitti)
+                                var handShooted = (b << 26) >> 31;
+                            }
+
                             var x = e.p.GetShort();
                             var y = e.p.GetShort();
                             var angle = e.p.GetShort();
+                            Bullet bul = new Bullet();
+                            bul.PlayerId = playerId;
+                            bul.Position.X = x;
+                            bul.Position.Y = y;
+                            bul.Angle = angle;
+                            bul.WeaponFrom = weapon;
+
+                            Bullets.Add(bulletId, bul);
                             break;
                         }
                     case PacketType.BulletHit:
@@ -245,10 +267,10 @@ namespace SharpNetMatch
             {
                 NmClient_PacketReceived(null, new PacketEventArgs(ClientRead()));
             }
-            ClientReadInternal();
+            //ClientReadInternal();
         }
 
-        public void UpdatePlayer(byte shootNow)
+        public void UpdatePlayer(byte shootNow, byte pickedItemId = 0)
         {
             Packet p = new Packet();
             p.PutByte((byte)PacketType.Player);
@@ -263,14 +285,21 @@ namespace SharpNetMatch
             }
 
             // Tungetaan useampi muuttuja yhteen tavuun:
-            byte b = (byte)(((LocalPlayer.HeldWeapon % 16) << 0)  // Ase (bitit 0-3)
+            byte b = (byte)((((int)LocalPlayer.HeldWeapon % 16) << 0)  // Ase (bitit 0-3)
               + (LocalPlayer.HasAmmo << 4)     // Onko ammuksia (bitti 4)
               + (shootNow << 5));          // Ammutaanko (bitti 5)
 
             p.PutByte(b);
-            byte pickedId = 0;
-            p.PutByte(pickedId);
+            p.PutByte(pickedItemId);
             ClientSend(p);
+        }
+
+        internal void Logout()
+        {
+            Packet p = new Packet();
+            p.PutByte(PacketType.Logout);
+            ClientSend(p);
+            IsLoggedIn = false;
         }
     }
 }

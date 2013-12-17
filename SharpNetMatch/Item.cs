@@ -15,37 +15,75 @@ namespace SharpNetMatch
         {
             this.Position = Vector2.Zero;
         }
-        public int Id;
-        public byte ItemType;
+        public byte Id;
+        public ItemType Type;
         public Vector2 Position;
         public void Draw(GameTime gameTime, Map map)
         {
             map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, map.parent.GraphicsDevice.BlendStates.NonPremultiplied, null, null, null, null, map.parent.Cam.Transformation);
-            switch ((ItemType)ItemType)
+            switch (Type)
             {
-                case global::SharpNetMatch.ItemType.Rocket:
+                case ItemType.Rocket:
                     map.parent.spriteBatch.Draw(Textures.BazookaItem, map.GetTile(Position), Color.White);
                     break;
-                case global::SharpNetMatch.ItemType.Fuel:
+                case ItemType.Fuel:
                     map.parent.spriteBatch.Draw(Textures.ChainsawItem, map.GetTile(Position), Color.White);
                     break;
-                case global::SharpNetMatch.ItemType.Healthpack:
+                case ItemType.Healthpack:
                     map.parent.spriteBatch.Draw(Textures.HealthItem, map.GetTile(Position), Color.White);
                     break;
-                case global::SharpNetMatch.ItemType.Launcher:
+                case ItemType.Launcher:
                     map.parent.spriteBatch.Draw(Textures.LauncherItem, map.GetTile(Position), Color.White);
                     break;
-                case global::SharpNetMatch.ItemType.Ammo:
+                case ItemType.Ammo:
                     map.parent.spriteBatch.Draw(Textures.MachinegunItem, map.GetTile(Position), Color.White);
                     break;
-                case global::SharpNetMatch.ItemType.Shotgun:
+                case ItemType.Shotgun:
                     map.parent.spriteBatch.Draw(Textures.ShotgunItem, map.GetTile(Position), Color.White);
                     break;
                 default:
-                    map.parent.spriteBatch.DrawString(Textures.Arial16, ((ItemType)ItemType).ToString(), map.GetTile(Position), Color.White);
+                    map.parent.spriteBatch.DrawString(Textures.Arial16, Type.ToString(), map.GetTile(Position), Color.White);
                     break;
             }
             map.parent.spriteBatch.End();
+        }
+
+        public Rectangle Bounding
+        {
+            get
+            {
+                int w = 0;
+                int h = 0;
+                switch (Type)
+                {
+                    case ItemType.Rocket:
+                        w = Textures.BazookaItem.Width;
+                        h = Textures.BazookaItem.Height;
+                        break;
+                    case ItemType.Fuel:
+                        w = Textures.ChainsawItem.Width;
+                        h = Textures.ChainsawItem.Height;
+                        break;
+                    case ItemType.Healthpack:
+                        w = Textures.HealthItem.Width;
+                        h = Textures.HealthItem.Height;
+                        break;
+                    case ItemType.Launcher:
+                        w = Textures.LauncherItem.Width;
+                        h = Textures.LauncherItem.Height;
+                        break;
+                    case ItemType.Ammo:
+                        w = Textures.MachinegunItem.Width;
+                        h = Textures.MachinegunItem.Height;
+                        break;
+                    case ItemType.Shotgun:
+                        w = Textures.ShotgunItem.Width;
+                        h = Textures.ShotgunItem.Height;
+                        break;
+                }
+                return new Rectangle((int)(Position.X), (int)(Position.Y), w, h);
+            }
+
         }
     }
 }

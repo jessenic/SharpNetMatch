@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharpDX.Toolkit.Input;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,7 +34,7 @@ namespace SharpNetMatch
         public int FirePos;    // Missä kohdassa suuliekki näytetään (pituussuunnassa)
         public int Icon;    // Pieni ikoni tappoviesteihin
         public int PickCount;    // Kuinka paljon tavaraa saa poimittaessa
-        public int Key;    // Näppäin jolla tämä ase valitaan
+        public Keys Key;    // Näppäin jolla tämä ase valitaan
         public int SafeRange;    // Etäisyys jonka alle kohteesta oleva botti ei ammu
         public int ShootRange;    // Etäisyys jonka alle kohteesta oleva botti ampuu
         public int Character2;    // Pelihahmon objekti (tiimi 2)
@@ -52,7 +53,7 @@ namespace SharpNetMatch
             var w = new Weapon();
 
             w.ReloadTime = 250;
-            w.BulletSpeed = 1200;
+            w.BulletSpeed = 12;
             w.BulletForth = 33;
             w.BulletYaw = 10;
             w.Damage = 19;
@@ -69,7 +70,7 @@ namespace SharpNetMatch
             //w.FIRE)          = OBJ_FIRE1
             w.FirePos = 33;
             //w.ICON)          = IMG_SWEAPON1
-            //w.KEY)           = cbKey1
+            w.Key = Keys.D1;
             w.SafeRange = 100;
             w.ShootRange = 500;
             w.Weight = 100;
@@ -79,7 +80,7 @@ namespace SharpNetMatch
             w = new Weapon();
             w = new Weapon(); ;
             w.ReloadTime = 100;
-            w.BulletSpeed = 1000;
+            w.BulletSpeed = 10;
             w.BulletForth = 29;
             w.BulletYaw = 8;
             w.Damage = 17;
@@ -97,7 +98,7 @@ namespace SharpNetMatch
             w.FirePos = 29;
             //;w.Icon            = IMG_SWEAPON2;
             w.PickCount = 50;
-            //;w.Key             = cbKey2;
+            w.Key = Keys.D2;
             w.SafeRange = 200;
             w.ShootRange = 500;
             w.Weight = 100;
@@ -106,7 +107,7 @@ namespace SharpNetMatch
             // Sinko;
             w = new Weapon();
             w.ReloadTime = 1500;
-            w.BulletSpeed = 900;
+            w.BulletSpeed = 9;
             w.BulletForth = 30;
             w.BulletYaw = 8;
             w.Damage = 150;
@@ -124,7 +125,7 @@ namespace SharpNetMatch
             w.FirePos = -25;
             //;w.Icon         = IMG_SWEAPON3;
             w.PickCount = 5;
-            //;w.Key          = cbKey3;
+            w.Key = Keys.D3;
             w.SafeRange = 300;
             w.ShootRange = 500;
             w.Weight = 115;
@@ -133,7 +134,7 @@ namespace SharpNetMatch
             // Haulikko;
             w = new Weapon();
             w.ReloadTime = 1000;
-            w.BulletSpeed = 900;
+            w.BulletSpeed = 9;
             w.BulletForth = 33;
             w.BulletYaw = 10;
             w.Damage = 20;
@@ -151,7 +152,7 @@ namespace SharpNetMatch
             w.FirePos = 33;
             //;w.Icon         = IMG_SWEAPON5;
             w.PickCount = 10;
-            //;w.Key          = cbKey4;
+            w.Key = Keys.D4;
             w.SafeRange = 150;
             w.ShootRange = 300;
             w.Weight = 100;
@@ -177,7 +178,7 @@ namespace SharpNetMatch
             //;w.Fire        = OBJ_NULL
             //;w.Icon        = IMG_SWEAPON4;
             w.PickCount = 50;
-            //;w.Key         = cbKey6;
+            w.Key = Keys.D6;
             w.SafeRange = 60;
             w.ShootRange = 150;
             w.Weight = 90;
@@ -186,7 +187,7 @@ namespace SharpNetMatch
             // Kranaatinlaukaisin;
             w = new Weapon();
             w.ReloadTime = 1000;
-            w.BulletSpeed = 400;
+            w.BulletSpeed = 4;
             w.BulletForth = 32;
             w.FirePos = 36;
             w.BulletYaw = 8;
@@ -204,7 +205,7 @@ namespace SharpNetMatch
             //;w.Fire        = OBJ_NULL
             //;w.Icon        = IMG_SWEAPON6;
             w.PickCount = 2;
-            //;w.Key         = cbKey5;
+            w.Key = Keys.D5;
             w.SafeRange = 300;
             w.ShootRange = 400;
             w.Weight = 110;

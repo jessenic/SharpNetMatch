@@ -66,12 +66,17 @@ namespace SharpNetMatch
         {
             get
             {
-                var v = new Vector2((_nm.mouseState.X * _nm.Window.ClientBounds.Width - _nm.Window.ClientBounds.Width / 2) / Zoom,
-                    (_nm.mouseState.Y * _nm.Window.ClientBounds.Height - _nm.Window.ClientBounds.Height / 2) / Zoom);
-                v += Pos;
-                Vector2.Transform(v, Transformation);
-                return v;
+                return ScreenPosInWorld(new Vector2(_nm.mouseState.X * _nm.Window.ClientBounds.Width, _nm.mouseState.Y * _nm.Window.ClientBounds.Height));
             }
+        }
+
+        public Vector2 ScreenPosInWorld(Vector2 sPos)
+        {
+            sPos = new Vector2((sPos.X - _nm.Window.ClientBounds.Width / 2) / Zoom,
+    (sPos.Y - _nm.Window.ClientBounds.Height / 2) / Zoom);
+            sPos += Pos;
+            Vector2.Transform(sPos, Transformation);
+            return sPos;
         }
 
     }

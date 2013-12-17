@@ -17,7 +17,7 @@ namespace SharpNetMatch
         public Vector2 Position; //Sijainti
         public Vector2 NextPosition;
         public short Angle;//Kulma
-        public byte HeldWeapon;//Käytössä oleva ase
+        public WeaponType HeldWeapon;//Käytössä oleva ase
         public int Health;//Terveys
         public short Kills;//Tappojen lukumäärä
         public short Deaths;//Kuolemien lukumäärä
@@ -35,6 +35,18 @@ namespace SharpNetMatch
         {
             Position = Vector2.Zero;
             NextPosition = Vector2.Zero;
+            HeldWeapon = WeaponType.Pistol;
+            Angle = 0;
+            Health = 100;
+            Kills = 0;
+            Deaths = 0;
+            KillRatio = 0;
+            IsDead = false;
+            Zombie = 1;
+            Team = 0;
+            Visible = 0;
+            IsProtected = 0;
+            HasAmmo = 0;
         }
 
         public void Draw(GameTime gameTime, Map map)
@@ -63,6 +75,7 @@ namespace SharpNetMatch
                 Position = NextPosition;
             }
             NextPosition = Position;
+            byte pickedItem = 0;
             if (Health > 0)
             {
                 var newPos = Position;
@@ -98,8 +111,16 @@ namespace SharpNetMatch
                 }
                 //Camera.Location = Position;
                 map.parent.Cam.Pos = map.GetTile(Position);
-                HeldWeapon = (byte)WeaponType.MachineGun;
                 HasAmmo = 1;
+
+                foreach (var i in map.parent.cbn.Items.Values)
+                {
+                    if (this.Bounding.Intersects(i.Bounding))
+                    {
+                        pickedItem = i.Id;
+                        break;
+                    }
+                }
 
                 if (map.parent.mouseState.Left == ButtonState.Pressed && !lastPressed)
                 {
@@ -133,15 +154,15 @@ namespace SharpNetMatch
 
             if (gameTime.TotalGameTime - map.parent.lastUpdate > TimeSpan.FromMilliseconds(100))
             {
-                map.parent.cbn.UpdatePlayer(lastPressed ? (byte)1 : (byte)0);
+                map.parent.cbn.UpdatePlayer(lastPressed ? (byte)1 : (byte)0, pickedItem);
                 map.parent.lastUpdate = gameTime.TotalGameTime;
             }
         }
-        private float DegreeToRadian(short angle)
+        public static float DegreeToRadian(short angle)
         {
             return (float)((Math.PI / 180.0) * (360 - angle));
         }
-        private short RadianToDegree(double angle)
+        public static short RadianToDegree(double angle)
         {
             return (short)(360 - (180.0 / Math.PI * angle));
         }
