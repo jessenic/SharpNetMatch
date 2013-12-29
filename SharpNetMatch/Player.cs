@@ -1,7 +1,7 @@
-﻿using SharpDX;
-using SharpDX.Toolkit;
-using SharpDX.Toolkit.Graphics;
-using SharpDX.Toolkit.Input;
+﻿
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +51,7 @@ namespace SharpNetMatch
 
         public void Draw(GameTime gameTime, Map map)
         {
-            map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, map.parent.GraphicsDevice.BlendStates.NonPremultiplied, null, null, null, null, map.parent.Cam.Transformation);
+            map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.NonPremultiplied, null, null, null, null, map.parent.Cam.Transformation);
             Vector2 pos = map.GetTile(Position);
 
             if (Team == 2)
@@ -62,7 +62,7 @@ namespace SharpNetMatch
             {
                 map.parent.spriteBatch.Draw(Textures.PlayerPistol1, pos, null, Color.White, DegreeToRadian(Angle), new Vector2(Textures.PlayerPistol1.Width / 2, Textures.PlayerPistol1.Height / 2), 1, SpriteEffects.None, 0);
             }
-            map.spriteBatch.DrawString(Textures.Arial16, this.Name + " " + Health, pos + new Vector2(0, Textures.PlayerPistol1.Height), Color.Yellow);
+            Textures.Arial15.DrawText(map.spriteBatch, this.Name + " " + Health, pos + new Vector2(0, Textures.PlayerPistol1.Height), Color.Yellow);
             map.spriteBatch.End();
         }
 
@@ -122,7 +122,7 @@ namespace SharpNetMatch
                     }
                 }
 
-                if (map.parent.mouseState.Left == ButtonState.Pressed && !lastPressed)
+                if (map.parent.mouseState.LeftButton == ButtonState.Pressed && !lastPressed)
                 {
                     Weapon w = Weapon.WeaponList[(WeaponType)HeldWeapon];
                     // Tarkastetaan, onko panoksia
@@ -150,7 +150,7 @@ namespace SharpNetMatch
 
                 }
             }
-            lastPressed = map.parent.mouseState.Left == ButtonState.Pressed;
+            lastPressed = map.parent.mouseState.LeftButton == ButtonState.Pressed;
 
             if (gameTime.TotalGameTime - map.parent.lastUpdate > TimeSpan.FromMilliseconds(100))
             {

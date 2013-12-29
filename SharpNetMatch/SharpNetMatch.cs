@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Text;
-using SharpDX;
+using Microsoft.Xna.Framework;
 
 
 namespace SharpNetMatch
 {
     // Use these namespaces here to override SharpDX.Direct3D11
-    using SharpDX.Toolkit;
-    using SharpDX.Toolkit.Graphics;
-    using SharpDX.Toolkit.Input;
+    using Microsoft.Xna.Framework.Graphics;
+    using Microsoft.Xna.Framework.Input;
     using System.IO;
     using SharpCompress.Archive.Rar;
     using SharpCompress.Reader;
@@ -17,17 +16,17 @@ namespace SharpNetMatch
     using System.Collections.Generic;
 
     /// <summary>
-    /// Simple SharpNetMatch game using SharpDX.Toolkit.
+    /// Simple SharpNetMatch game using Microsoft.Xna.Framework.
     /// </summary>
     public class SharpNetMatch : Game
     {
         private GraphicsDeviceManager graphicsDeviceManager;
         internal SpriteBatch spriteBatch;
 
-        internal KeyboardManager keyboard;
+        //internal KeyboardManager keyboard;
         internal KeyboardState keyboardState;
 
-        internal MouseManager mouse;
+        //internal MouseManager mouse;
         internal MouseState mouseState;
         public Camera Cam;
         internal NmClient cbn = new NmClient();
@@ -49,10 +48,10 @@ namespace SharpNetMatch
             Content.RootDirectory = "Content";
 
             // Initialize input keyboard system
-            keyboard = new KeyboardManager(this);
+            //keyboard = new KeyboardManager(this);
 
             // Initialize input mouse system
-            mouse = new MouseManager(this);
+            //mouse = new MouseManager(this);
         }
 
         protected override void Initialize()
@@ -66,7 +65,7 @@ namespace SharpNetMatch
         protected override void LoadContent()
         {
             // Instantiate a SpriteBatch
-            spriteBatch = ToDisposeContent(new SpriteBatch(GraphicsDevice));
+            spriteBatch = new SpriteBatch(GraphicsDevice);
 
             Textures.LoadContent(Content);
             Weapon.Load();
@@ -146,10 +145,10 @@ namespace SharpNetMatch
             }
 
             // Get the current state of the keyboard
-            keyboardState = keyboard.GetState();
+            keyboardState = Keyboard.GetState();
 
             // Get the current state of the mouse
-            mouseState = mouse.GetState();
+            mouseState = Mouse.GetState();
             foreach (var w in Weapon.WeaponList)
             {
                 if (keyboardState.IsKeyDown(w.Value.Key))
@@ -160,7 +159,7 @@ namespace SharpNetMatch
 
             map.Update(gameTime);
             cbn.LocalPlayer.Update(gameTime, map);
-            Cam.Zoom = 1 + ((float)mouseState.WheelDelta / 1200f);
+            Cam.Zoom = 1 + ((float)mouseState.ScrollWheelValue / 1200f);
             List<short> removeBullets = new List<short>();
             foreach (var b in cbn.Bullets)
             {
@@ -181,7 +180,7 @@ namespace SharpNetMatch
 
         public Vector2 GetMouseXY()
         {
-            return new Vector2(mouseState.X * GraphicsDevice.BackBuffer.Width, mouseState.Y * GraphicsDevice.BackBuffer.Height);
+            return new Vector2(mouseState.X, mouseState.Y);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -195,7 +194,7 @@ namespace SharpNetMatch
             if (map == null)
             {
                 spriteBatch.Begin();
-                spriteBatch.DrawString(Textures.Arial16, "Loading map " + cbn.MapName, new Vector2(10, 10), Color.Yellow);
+                Textures.Impact30.DrawText(spriteBatch, "Loading map " + cbn.MapName, new Vector2(10, 10), Color.Yellow);
                 spriteBatch.End();
                 return;
             }
@@ -224,8 +223,8 @@ namespace SharpNetMatch
             // Draw the some 2d text
             // ------------------------------------------------------------------------
             spriteBatch.Begin();
-            spriteBatch.DrawString(Textures.Arial16, cbn.LocalPlayer.HeldWeapon.ToString(), new Vector2(10, 10), Color.Yellow);
-            spriteBatch.DrawString(Textures.Arial16, "Time: " + cbn.TimePlayed + "/" + cbn.RoundLength, new Vector2(GraphicsDevice.Viewport.Width / 2, 10), Color.Yellow);
+            Textures.Impact30.DrawText(spriteBatch, cbn.LocalPlayer.HeldWeapon.ToString(), new Vector2(10, 10), Color.Yellow);
+            Textures.Arial15.DrawText(spriteBatch, "Time: " + cbn.TimePlayed + "/" + cbn.RoundLength, new Vector2(GraphicsDevice.Viewport.Width / 2, 10), Color.Yellow);
             spriteBatch.End();
 
             base.Draw(gameTime);

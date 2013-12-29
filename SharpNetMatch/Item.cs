@@ -1,6 +1,6 @@
-﻿using SharpDX;
-using SharpDX.Toolkit;
-using SharpDX.Toolkit.Graphics;
+﻿
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace SharpNetMatch
         public Vector2 Position;
         public void Draw(GameTime gameTime, Map map)
         {
-            map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, map.parent.GraphicsDevice.BlendStates.NonPremultiplied, null, null, null, null, map.parent.Cam.Transformation);
+            map.parent.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.NonPremultiplied, null, null, null, null, map.parent.Cam.Transformation);
             switch (Type)
             {
                 case ItemType.Rocket:
@@ -42,7 +42,7 @@ namespace SharpNetMatch
                     map.parent.spriteBatch.Draw(Textures.ShotgunItem, map.GetTile(Position), Color.White);
                     break;
                 default:
-                    map.parent.spriteBatch.DrawString(Textures.Arial16, Type.ToString(), map.GetTile(Position), Color.White);
+                    Textures.Arial15.DrawText(map.spriteBatch, Type.ToString(), map.GetTile(Position), Color.White);
                     break;
             }
             map.parent.spriteBatch.End();

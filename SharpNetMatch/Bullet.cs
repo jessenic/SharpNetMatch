@@ -1,6 +1,6 @@
-﻿using SharpDX;
-using SharpDX.Toolkit;
-using SharpDX.Toolkit.Graphics;
+﻿
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -132,8 +132,8 @@ namespace SharpNetMatch
         public void Draw(GameTime gameTime, Map map)
         {
             Vector2 pos = map.GetTile(Position);
-            map.spriteBatch.Begin(SpriteSortMode.BackToFront, map.parent.GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, map.parent.Cam.Transformation);
-            map.spriteBatch.DrawString(Textures.Arial16, PlayerId.ToString(), pos, Color.Yellow);
+            map.spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, null, null, null, null, map.parent.Cam.Transformation);
+            Textures.Arial15.DrawText(map.spriteBatch, PlayerId.ToString(), pos, Color.Yellow);
             map.spriteBatch.End();
         }
     }

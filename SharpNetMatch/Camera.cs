@@ -1,5 +1,6 @@
-﻿using SharpDX;
-using SharpDX.Toolkit.Graphics;
+﻿
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,10 +44,10 @@ namespace SharpNetMatch
             get
             {
                 _transform =       // Thanks to o KB o for this solution
-                  Matrix.Translation(new Vector3(-Pos.X, -Pos.Y, 0)) *
-                                             Matrix.RotationZ(Rotation) *
-                                             Matrix.Scaling(new Vector3(Zoom, Zoom, 1)) *
-                                             Matrix.Translation(new Vector3(_nm.GraphicsDevice.Viewport.Width * 0.5f, _nm.GraphicsDevice.Viewport.Height * 0.5f, 0));
+                  Matrix.CreateTranslation(new Vector3(-Pos.X, -Pos.Y, 0)) *
+                                             Matrix.CreateRotationZ(Rotation) *
+                                             Matrix.CreateScale(new Vector3(Zoom, Zoom, 1)) *
+                                             Matrix.CreateTranslation(new Vector3(_nm.GraphicsDevice.Viewport.Width * 0.5f, _nm.GraphicsDevice.Viewport.Height * 0.5f, 0));
                 return _transform;
             }
         }
@@ -66,7 +67,7 @@ namespace SharpNetMatch
         {
             get
             {
-                return ScreenPosInWorld(new Vector2(_nm.mouseState.X * _nm.Window.ClientBounds.Width, _nm.mouseState.Y * _nm.Window.ClientBounds.Height));
+                return ScreenPosInWorld(new Vector2(_nm.mouseState.X, _nm.mouseState.Y));
             }
         }
 

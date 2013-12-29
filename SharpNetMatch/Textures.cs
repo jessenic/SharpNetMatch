@@ -1,7 +1,10 @@
-﻿using SharpDX.Toolkit.Content;
-using SharpDX.Toolkit.Graphics;
+﻿using BmFont;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +23,8 @@ namespace SharpNetMatch
         public static Texture2D PlayerPistol1;
         public static Texture2D PlayerPistol2;
 
-        public static SpriteFont Arial16;
+        public static BitmapFont Arial15;
+        public static BitmapFont Impact30;
 
         public static void LoadContent(ContentManager Content)
         {
@@ -35,9 +39,43 @@ namespace SharpNetMatch
             PlayerPistol1 = Content.Load<Texture2D>("player1");
             PlayerPistol2 = Content.Load<Texture2D>("player1_2");
 
-            // Loads a sprite font
-            // The [Arial16.xml] file is defined with the build action [ToolkitFont] in the project
-            Arial16 = Content.Load<SpriteFont>("Arial16");
+            Arial15 = new BitmapFont("Arial_15", Content);
+            Impact30 = new BitmapFont("Impact_30", Content);
+        }
+    }
+    public class BitmapFont
+    {
+        public FontFile FFile { get; private set; }
+        public Texture2D Texture { get; private set; }
+        private Dictionary<char, FontChar> _characterMap;
+
+        public BitmapFont(string FileName, ContentManager Content)
+        {
+            FFile = FontLoader.Load(Path.Combine(Content.RootDirectory, FileName + ".fnt"));
+            Texture = Content.Load<Texture2D>(FileName + "_0.png");
+            _characterMap = new Dictionary<char, FontChar>();
+
+            foreach (var fontCharacter in FFile.Chars)
+            {
+                char c = (char)fontCharacter.ID;
+                _characterMap.Add(c, fontCharacter);
+            }
+        }
+
+        public void DrawText(SpriteBatch spriteBatch, string text, Vector2 pos, Color color)
+        {
+                foreach(char c in text)
+                {
+                        FontChar fc;
+                        if(_characterMap.TryGetValue(c, out fc))
+                        {
+                                var sourceRectangle = new Rectangle(fc.X, fc.Y, fc.Width, fc.Height);
+                                var position = pos + new Vector2(fc.XOffset,fc.YOffset);
+
+                                spriteBatch.Draw(Texture, position, sourceRectangle, color);
+                                pos.X += fc.XAdvance;
+                        }
+                }
         }
     }
 }

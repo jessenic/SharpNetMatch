@@ -1,7 +1,7 @@
-﻿using SharpDX;
-using SharpDX.Toolkit;
-using SharpDX.Toolkit.Graphics;
-using SharpDX.Toolkit.Input;
+﻿
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -39,11 +39,11 @@ namespace SharpNetMatch
 
         public void LoadContent()
         {
-            Tilemap = Texture2D.New(GraphicsDevice, Image.Load("Content\\" + mapname + ".pxi.bmp"));
+            Tilemap = Texture2D.FromStream(GraphicsDevice, File.OpenRead("Content\\" + mapname + ".pxi.bmp"));
 
             if (File.Exists("Content\\" + mapname + "_back.pxi.bmp"))
             {
-                Background = Texture2D.New(GraphicsDevice, Image.Load("Content\\" + mapname + "_back.pxi.bmp"));
+                Background = Texture2D.FromStream(GraphicsDevice, File.OpenRead("Content\\" + mapname + "_back.pxi.bmp"));
             }
 
             using (var fs = File.OpenRead("Content\\" + mapname + ".map"))
@@ -140,7 +140,7 @@ namespace SharpNetMatch
                 var lp = parent.Cam.ScreenPosInWorld(new Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
                 //tile -= GetTile(new Vector2(parent.GraphicsDevice.Viewport.Width * 0.5f, parent.GraphicsDevice.Viewport.Height * 0.5f));
                 //spriteBatch.Begin(SpriteSortMode.FrontToBack, GraphicsDevice.BlendStates.Opaque, GraphicsDevice.SamplerStates.LinearWrap, GraphicsDevice.DepthStencilStates.Default, GraphicsDevice.RasterizerStates.CullNone);
-                spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.Transformation);
+                spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, null, null, null, null, parent.Cam.Transformation);
                 for (int x = (int)fp.X / Background.Width - 1; x < (int)lp.X / Background.Width + 1; x++)
                 {
                     for (int y = (int)fp.Y / Background.Height - 1; y < (int)lp.Y / Background.Height + 1 + 1; y++)
@@ -150,7 +150,7 @@ namespace SharpNetMatch
                 }
                 spriteBatch.End();
             }
-            spriteBatch.Begin(SpriteSortMode.BackToFront, GraphicsDevice.BlendStates.AlphaBlend, null, null, null, null, parent.Cam.Transformation);
+            spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, null, null, null, null, parent.Cam.Transformation);
             for (byte l = 0; l < 2; l++)
             {
                 for (int x = 0; x < mapWidth; x++)

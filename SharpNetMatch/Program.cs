@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace SharpNetMatch
 {
     /// <summary>
-    /// Simple SharpNetMatch application using SharpDX.Toolkit.
+    /// Simple SharpNetMatch application using Microsoft.Xna.Framework.
     /// </summary>
     class Program
     {
