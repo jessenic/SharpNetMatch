@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -37,16 +38,16 @@ namespace SharpNetMatch
 
         byte[][,] map;
 
-        public void LoadContent()
+        public void LoadContent(ContentManager Content)
         {
-            Tilemap = Texture2D.FromStream(GraphicsDevice, File.OpenRead("Content\\" + mapname + ".pxi.bmp"));
+            Tilemap = Texture2D.FromStream(GraphicsDevice, File.OpenRead(Path.Combine(Content.RootDirectory, mapname + ".pxi.bmp")));
 
-            if (File.Exists("Content\\" + mapname + "_back.pxi.bmp"))
+            if (File.Exists("Content" + Path.PathSeparator + mapname + "_back.pxi.bmp"))
             {
-                Background = Texture2D.FromStream(GraphicsDevice, File.OpenRead("Content\\" + mapname + "_back.pxi.bmp"));
+                Background = Texture2D.FromStream(GraphicsDevice, File.OpenRead(Path.Combine(Content.RootDirectory, mapname + "_back.pxi.bmp")));
             }
 
-            using (var fs = File.OpenRead("Content\\" + mapname + ".map"))
+            using (var fs = File.OpenRead(Path.Combine(Content.RootDirectory, mapname + ".map")))
             {
                 var w = fs.ReadByte();
                 var h = fs.ReadByte();

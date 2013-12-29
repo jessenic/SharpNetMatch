@@ -80,7 +80,7 @@ namespace SharpNetMatch
         public void LoadMap()
         {
             map = null;
-            string file = @"Content\" + cbn.MapName + ".mpc";
+            string file = Path.Combine(Content.RootDirectory, cbn.MapName + ".mpc");
 
             if (!File.Exists(file))
             {
@@ -112,20 +112,20 @@ namespace SharpNetMatch
                     //    }
                     //    Debugger.Break();
                     //}
-                    using (var ffs = File.OpenWrite(Path.GetDirectoryName(file) + "\\" + f.FilePath))
+                    using (var ffs = File.OpenWrite(Path.Combine(Content.RootDirectory, f.FilePath)))
                     {
                         f.WriteTo(ffs);
                         ffs.Flush();
                     }
                     if (Path.GetExtension(f.FilePath).ToLower().Equals(".pxi"))
                     {
-                        DotPxi.ConvertToBitmap(Path.GetDirectoryName(file) + "\\" + f.FilePath);
+                        DotPxi.ConvertToBitmap(Path.Combine(Content.RootDirectory, f.FilePath));
                     }
                 }
             }
 
             map = new Map(this, cbn.MapName);
-            map.LoadContent();
+            map.LoadContent(Content);
             prevMapCRC = cbn.MapCRC;
         }
         internal TimeSpan lastUpdate;
